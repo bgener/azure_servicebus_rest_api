@@ -1,0 +1,128 @@
+{
+	"info": {
+		"_postman_id": "040d687b-b7c7-4ed2-ae88-5d6a09f9f234",
+		"name": "Azure ServiceBus REST API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Send ServiceBus Message",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c2c7131e-5bf0-4edd-914d-d1b5a8ba3861",
+						"exec": [
+							"function getSasToken(entityPath) {\r",
+							"    const now = new Date();\r",
+							"    const minute = 60;\r",
+							"    const expireInSeconds = Math.round(now.getTime() / 1000) + minute;\r",
+							"    \r",
+							"    var uri = \"http://\" + pm.environment.get(\"servicebus_namespace\") + \".servicebus.windows.net/\" + entityPath; \r",
+							"\tvar encodedResourceUri = encodeURIComponent(uri); \r",
+							"\t\r",
+							"\tvar plainSignature = encodedResourceUri + \"\\n\" + expireInSeconds; \r",
+							"\tvar hash = CryptoJS.HmacSHA256(plainSignature, pm.environment.get(\"servicebus_sasKey\")); \r",
+							"\tvar base64HashValue = CryptoJS.enc.Base64.stringify(hash); \r",
+							"\r",
+							"\tvar token = \"SharedAccessSignature sr=\" + encodedResourceUri + \"&sig=\" + encodeURIComponent(base64HashValue) + \"&se=\" + expireInSeconds + \"&skn=\" + pm.environment.get(\"servicebus_sasKeyName\");\r",
+							"\tconsole.log(token);\r",
+							"\t\r",
+							"\treturn token; \r",
+							"} \r",
+							"\r",
+							"var entityPath = pm.environment.get(\"servicebus_entity\");\r",
+							"var token = getSasToken(entityPath);\r",
+							"postman.setEnvironmentVariable('token', token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "VIEW",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{servicebus_namespace}}.servicebus.windows.net/{{servicebus_entity}}/messages",
+					"protocol": "https",
+					"host": [
+						"{{servicebus_namespace}}",
+						"servicebus",
+						"windows",
+						"net"
+					],
+					"path": [
+						"{{servicebus_entity}}",
+						"messages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete ServiceBus Message",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c2c7131e-5bf0-4edd-914d-d1b5a8ba3861",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "{{token}}"
+					},
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{servicebus_namespace}}.servicebus.windows.net/{{servicebus_entity}}/messages/head",
+					"protocol": "https",
+					"host": [
+						"{{servicebus_namespace}}",
+						"servicebus",
+						"windows",
+						"net"
+					],
+					"path": [
+						"{{servicebus_entity}}",
+						"messages",
+						"head"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
